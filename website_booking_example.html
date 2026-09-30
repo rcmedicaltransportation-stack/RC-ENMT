@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Book a Ride - RC Medical Transport</title></head>
+<body>
+<h1>Request Transportation</h1>
+<p>This is a transportation request, not an emergency service. We will contact you to confirm.</p>
+<form id="rideForm">
+  <input name="client_id" placeholder="Client ID" required><br>
+  <input name="pickup" placeholder="Pickup address" required><br>
+  <input name="destination" placeholder="Destination" required><br>
+  <input name="appointment_time" type="datetime-local" required><br>
+  <select name="transport_type">
+    <option>ambulatory</option><option>wheelchair</option><option>gurney</option>
+  </select><br>
+  <label><input name="round_trip" type="checkbox"> Return trip</label><br>
+  <button>Request My Ride</button>
+</form>
+<script>
+document.getElementById("rideForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const body = {
+    client_id: Number(f.get("client_id")),
+    pickup: f.get("pickup"),
+    destination: f.get("destination"),
+    appointment_time: f.get("appointment_time"),
+    transport_type: f.get("transport_type"),
+    round_trip: f.get("round_trip") === "on",
+    source: "website"
+  };
+  const r = await fetch("https://YOUR-SOFTWARE-DOMAIN.com/website/ride-request", {
+    method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)
+  });
+  alert(r.ok ? "Ride request received. We will contact you to confirm." : "Please call us for assistance.");
+});
+</script>
+</body></html>
