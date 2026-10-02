@@ -1,15 +1,37 @@
-# Connected web test version
+# RC Medical Transport — connected web test application
 
-The Render homepage now serves customer, driver, and admin/dispatch browser views. The saved React Native starters were adapted into a dependency-free mobile-friendly web interface; this is not an App Store build.
+This web implementation now includes the agreed multi-page workflows. It is a sample-data test application, not a production launch or signed native app.
 
-Routes: `/`, `/passenger`, `/driver`, `/admin`. All browser views call `/api` on the same host. Records are scoped to a randomly generated browser test session in localStorage; a separate browser/device has a separate session. The connector stores test records in SQLite `connected-demo.db`, on Render's ephemeral filesystem. Restart/redeploy can reset records.
+## Pages
 
-Verified workflow: customer request → dispatch assignment → driver pickup/destination status → customer status → completion with passenger mileage → draft billing record. Phone bookings and shift start/end odometer totals share the same test backend.
+Customer: Home; Book a Ride; Medical Information; Review & Confirm; Private-Pay Payment; Ride Confirmed. Additional pages: My Rides, Track My Ride, Documents, Messages & Support, My Profile.
 
-Billing drafts are ride summaries for review, not validated CMS-1500 forms or submitted claims. No procedure codes or rates are guessed. Login/roles, persistent secure database, secure document and odometer-photo storage, GPS/background tracking, notifications, payments, payer integration and native app releases still require implementation and external setup. Use only sample data.
+Driver: Driver Home; Assigned Trips; Trip Details; Navigation; Update Trip Status; Complete Trip. Additional pages: Shift & Mileage, Documents, Messages.
 
-The original API remains present for compatibility and is not activated as a production integration by this change.
+Dispatch: Dashboard; New Trip; Today's Trips; Dispatch; Review Trip Details; Patients; Drivers; Vehicles; Eligibility / PCS / TAR; Documents; Trip Progress; Billing; Reports; Messages; Setup & Test Connection.
 
-Validation: Python syntax, JavaScript syntax, FastAPI TestClient tests for all four HTML routes, booking/assignment/status/completion, mileage, duplicate draft prevention, invalid odometer rejection, and separation between test sessions.
+The routes `/`, `/passenger`, `/driver`, and `/admin` serve the application. Hash navigation selects individual screens. A test API under `/api` persists records in `connected-demo.db` on Render's ephemeral disk. Redeploys/restarts can erase records.
 
-Package comparison: Connected-App2027 contains the shared API wiring; Final-Demo2026 9 contains a richer but local-state-only billing view. The web adaptation combines the shared workflow with editable sample claim fields, persisted draft review, missing-field checks and a partial CMS-1500 field preview. It does not transmit claims or validate payer-specific rules.
+## Connected functionality
+
+- Six-step customer request flow with editable assistance details, review, idempotent save and request receipt.
+- Optional private-pay quote request or explicitly simulated payment choice. No card input, rate assumption, or money collection.
+- Manual phone bookings, driver assignment, multiple test drivers and vehicles, editable roster and fleet records.
+- Ordered driver statuses, customer/dispatch progress, pre-trip cancellation, passenger mileage at completion.
+- Start/end shift odometers with invalid ending values rejected and prior shifts retained in the test record.
+- In-workspace messages, sample profiles, sample eligibility/PCS/TAR review checklists.
+- Sample PDF/PNG/JPEG attachments up to 128 KB, limited to 20 files per workspace. No real documents permitted.
+- Reports and CSV export; test request and trip printing.
+- Completed-trip billing drafts, duplicate prevention, editable review fields, starter completeness checks and a partial CMS-1500 box map. Claims remain Draft; no submission occurs.
+- Optional shared workspace UUID allows test devices to use the same sample records. This is a test capability code, not role authentication.
+- Address handoff to Apple Maps when explicitly clicked; no automatic GPS collection.
+
+## Required before a real launch
+
+Production authentication, role authorization and MFA; durable database and encrypted file storage; production audit/security controls and backups; merchant/payment integration; SMS/push provider credentials; GPS/location integration; authorized eligibility/payer/clearinghouse integration; website booking integration; iOS/Android developer accounts/signing. The original starter API is preserved for compatibility and must be secured before production.
+
+Never enter real patient, health, insurance, identifier, or card information. View-switching and workspace codes do not supply production security.
+
+## Validation
+
+Python and JavaScript syntax checks; automated API workflow tests covering two drivers/fleet, idempotent booking, ordered transitions, completion, cancellation, invalid mileage rejection, session isolation, sample document encoding/type checks, messaging, sample payment/checklist records, and duplicate claim prevention. Page renderer tests cover every customer, driver, dispatch and shared page. Live browser acceptance testing follows deployment.
