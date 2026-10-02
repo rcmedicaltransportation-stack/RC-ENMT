@@ -217,3 +217,6 @@ def dashboard():
             "submitted_claims": db.query(Trip).filter(Trip.billing_status==BillingStatus.SUBMITTED.value).count(),
             "paid": db.query(Trip).filter(Trip.billing_status==BillingStatus.PAID.value).count(),
         }
+
+from web_connector import connect
+connect(app)
