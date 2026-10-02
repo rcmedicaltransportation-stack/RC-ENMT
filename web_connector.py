@@ -1,10 +1,10 @@
 """Connected browser test interface adapted from the saved three-app starter."""
-import json, sqlite3, uuid, base64, binascii, re
+import json, sqlite3, uuid, base64, binascii, re, csv, io
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from pathlib import Path
-from fastapi import APIRouter, Header, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Header, HTTPException, Cookie
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix='/api')
@@ -278,6 +278,20 @@ def test_payment(ride_id:str,body:PaymentIn,x_demo_session:str|None=Header(defau
         if r['payer']!='Private Pay': raise HTTPException(400,'Only private-pay rides use this test screen.')
         r['payment']={'status':'Simulated — no money collected' if body.method=='Simulate payment' else 'Quote requested','method':body.method,'at':now(),'amount':None};log(d,'Test payment choice saved: '+ride_id);return r
     return change(session(x_demo_session),action)
+
+@router.get('/reports/trips.csv')
+def report_csv(rc_test_workspace:str|None=Cookie(default=None),x_demo_session:str|None=Header(default=None)):
+    d=load(session(x_demo_session or rc_test_workspace));out=io.StringIO();writer=csv.writer(out)
+    writer.writerow(['Ride ID','Passenger (sample)','Date','Pickup time','Transport','Status','Driver','Passenger miles','Payer'])
+    for r in d['rides']:
+        cells=[r['id'],r['name'],r['date'],r['time'],r['type'],r['status'],r.get('driver',''),r.get('passengerMiles',0),r['payer']]
+        writer.writerow(["'"+str(x) if str(x).lstrip().startswith(('=','+','-','@')) else x for x in cells])
+    return Response(out.getvalue(),media_type='text/csv',headers={'Content-Disposition':'attachment; filename="rc-sample-trips.csv"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'})
+@router.get('/documents/{file_id}/download')
+def file_download(file_id:str,rc_test_workspace:str|None=Cookie(default=None),x_demo_session:str|None=Header(default=None)):
+    f=find(load(session(x_demo_session or rc_test_workspace)),'documents',file_id)
+    name=re.sub(r'[^a-zA-Z0-9._-]','_',f['name']) or 'sample-document'
+    return Response(base64.b64decode(f['data']),media_type=f['mime'],headers={'Content-Disposition':'attachment; filename="'+name+'"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'})
 
 def connect(app):
     # Replace the status-only homepage; preserve the original API routes.
